@@ -7,6 +7,5 @@
     "content-hive"
   ],
   "requirements": [],
-  "config_flow": false,
-  "release_notes": "Registry migration: track per-plugin manifest."
+  "config_flow": false
 }
