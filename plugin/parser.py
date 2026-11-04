@@ -162,13 +162,17 @@ class FXTwitterParser:
                     )
                 )
             elif item_type == "gif":
+                streams = [VideoStream(urls=[item["url"]], width=width, height=height)]
+                thumbnail = item.get("thumbnail_url")
+                if thumbnail:
+                    streams.append(CoverStream(urls=[thumbnail]))
                 media_list.append(
                     ParserMediaInfo(
                         source_key=source_key_from_url(item["url"]),
                         type=MediaType.GIF,
                         width=width,
                         height=height,
-                        streams=[ImageStream(urls=[item["url"]], width=width, height=height)],
+                        streams=streams,
                     )
                 )
 
