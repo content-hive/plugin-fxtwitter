@@ -7,12 +7,16 @@ import aiohttp
 
 from contenthive.plugins.context import PluginContext
 from contenthive.plugins.contracts import (
+    CoverStream,
+    ImageStream,
     MediaType,
     ParserAuthorInfo,
     ParserMediaInfo,
     ParserPlatformInfo,
     ParserResult,
     ParserResultStatus,
+    VideoStream,
+    source_key_from_url,
 )
 
 from .const import API_BASE_URL, DOMAIN, PLATFORM_CODE, PLATFORM_ICON, PLATFORM_NAME, PLATFORM_URL, URL_PATTERN
@@ -128,42 +132,47 @@ class FXTwitterParser:
 
         for item in media_all:
             item_type = item.get("type")
+            width = item.get("width")
+            height = item.get("height")
             if item_type == "photo":
                 media_list.append(
                     ParserMediaInfo(
-                        url=item["url"],
+                        source_key=source_key_from_url(item["url"]),
                         type=MediaType.IMAGE,
-                        title=None,
-                        cover=None,
-                        duration=None,
-                        width=item.get("width"),
-                        height=item.get("height"),
+                        width=width,
+                        height=height,
+                        streams=[ImageStream(urls=[item["url"]], width=width, height=height)],
                     )
                 )
             elif item_type == "video":
                 duration = item.get("duration")
                 duration_ms = int(duration * 1000) if isinstance(duration, (int, float)) else None
+                streams: list = [VideoStream(urls=[item["url"]], width=width, height=height)]
+                thumbnail = item.get("thumbnail_url")
+                if thumbnail:
+                    streams.append(CoverStream(urls=[thumbnail]))
                 media_list.append(
                     ParserMediaInfo(
-                        url=item["url"],
+                        source_key=source_key_from_url(item["url"]),
                         type=MediaType.VIDEO,
-                        title=None,
-                        cover=item.get("thumbnail_url") or None,
                         duration=duration_ms,
-                        width=item.get("width"),
-                        height=item.get("height"),
+                        width=width,
+                        height=height,
+                        streams=streams,
                     )
                 )
             elif item_type == "gif":
+                streams = [VideoStream(urls=[item["url"]], width=width, height=height)]
+                thumbnail = item.get("thumbnail_url")
+                if thumbnail:
+                    streams.append(CoverStream(urls=[thumbnail]))
                 media_list.append(
                     ParserMediaInfo(
-                        url=item["url"],
+                        source_key=source_key_from_url(item["url"]),
                         type=MediaType.GIF,
-                        title=None,
-                        cover=item.get("thumbnail_url") or None,
-                        duration=None,
-                        width=item.get("width"),
-                        height=item.get("height"),
+                        width=width,
+                        height=height,
+                        streams=streams,
                     )
                 )
 
